@@ -1,16 +1,27 @@
+import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Button, Container, Grid, Paper, Typography } from "@mui/material";
+import {
+  Button,
+  Container,
+  FormControl,
+  Grid,
+  InputLabel,
+  MenuItem,
+  Paper,
+  Select,
+  Typography,
+} from "@mui/material";
 import { Add } from "@mui/icons-material";
 import BorrowList from "../components/borrows/BorrowList";
 import { getBorrows } from "../api/borrows";
 import SearchBar from "../components/ui/SearchBar";
 
 const Borrows = () => {
+  const navigate = useNavigate();
   const [borrows, setBorrows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all");
-  const navigate = useNavigate(""); // Ensure you import useNavigate from react-router-dom
 
   useEffect(() => {
     const fetchBorrows = async () => {
@@ -74,4 +85,4 @@ const Borrows = () => {
   );
 };
 
-export default Borrows; // This is the crucial default export
+export default Borrows;

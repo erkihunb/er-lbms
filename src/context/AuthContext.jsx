@@ -1,6 +1,9 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { getToken, removeToken, setToken } from "../utils/auth";
-import api from "../api/axios";
+import { createContext, useContext, useState, useEffect } from "react";
+import {
+  login as apiLogin,
+  logout as apiLogout,
+  getCurrentUser,
+} from "../api/auth";
 
 const AuthContext = createContext();
 
@@ -9,44 +12,45 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadUser = async () => {
-      const token = getToken();
-      if (token) {
-        try {
-          const { data } = await api.get("/auth/me");
-          setUser(data.user);
-        } catch (err) {
-          removeToken();
+    const initializeAuth = async () => {
+      try {
+        const userData = getCurrentUser();
+        if (userData) {
+          setUser(userData);
         }
+      } catch (error) {
+        console.error("Auth initialization error:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
-    loadUser();
+    initializeAuth();
   }, []);
 
-  const login = async (email, password) => {
-    const { data } = await api.post("/auth/login", { email, password });
-    setToken(data.token);
-    setUser(data.user);
+  const login = async (credentials) => {
+    try {
+      const data = await apiLogin(credentials);
+      setUser(data.user);
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.message || "Login failed",
+      };
+    }
   };
 
-  const logout = async () => {
-    try {
-      await api.post("/auth/logout");
-    } finally {
-      removeToken();
-      setUser(null);
-    }
+  const logout = () => {
+    apiLogout();
+    setUser(null);
   };
 
   const value = {
     user,
+    isAuthenticated: !!user,
     loading,
     login,
     logout,
-    isAuthenticated: !!user,
-    isAdmin: user?.role === "admin",
-    isLibrarian: user?.role === "librarian" || user?.role === "admin",
   };
 
   return (
